@@ -5,13 +5,22 @@ app = Flask(__name__)
 last_signal = {
     "id": 0,
     "symbol": "",
-    "action": ""
+    "action": "",
+    "price": "",
+    "time": ""
 }
 
 
 @app.route("/")
 def home():
     return "YesFX Signal Server Running"
+
+
+@app.route("/status")
+def status():
+    return jsonify({
+        "server": "running"
+    })
 
 
 @app.route("/webhook", methods=["POST"])
@@ -21,37 +30,41 @@ def webhook():
 
     data = request.get_json(force=True)
 
-    alert = data.get("alert", "").lower()
+    print("Incoming Signal:")
+    print(data)
 
-    if alert == "buy_now":
-        action = "BUY"
-    elif alert == "sell_now":
-        action = "SELL"
+    action = str(data.get("action", "")).upper()
+
+    if action not in ["BUY", "SELL"]:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid Action"
+        }), 400
+
+    signal_id = data.get("id")
+
+    if signal_id is None or signal_id == "":
+        last_signal["id"] += 1
     else:
-        return jsonify({"status":"invalid alert"})
+        last_signal["id"] = signal_id
 
-    last_signal["id"] += 1
-    last_signal["symbol"] = "XAUUSD"
+    last_signal["symbol"] = data.get("symbol", "")
     last_signal["action"] = action
+    last_signal["price"] = data.get("price", "")
+    last_signal["time"] = data.get("time", "")
 
+    print("Stored Signal:")
     print(last_signal)
 
     return jsonify({
-        "status":"ok",
-        "signal":last_signal
+        "status": "ok",
+        "signal": last_signal
     })
 
 
 @app.route("/signal")
 def signal():
     return jsonify(last_signal)
-
-
-@app.route("/status")
-def status():
-    return jsonify({
-        "server":"running"
-    })
 
 
 if name == "__main__":

@@ -33,14 +33,17 @@ def webhook():
     print("Incoming Signal:")
     print(data)
 
-    action = str(data.get("action", "")).upper()
+ alert = str(data.get("alert", "")).lower()
 
-    if action not in ["BUY", "SELL"]:
-        return jsonify({
-            "status": "error",
-            "message": "Invalid Action"
-        }), 400
-
+if alert == "buy_now":
+    action = "BUY"
+elif alert == "sell_now":
+    action = "SELL"
+else:
+    return jsonify({
+        "status": "error",
+        "message": "Invalid Alert"
+    }), 400
     signal_id = data.get("id")
 
     if signal_id is None or signal_id == "":

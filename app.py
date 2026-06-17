@@ -33,25 +33,26 @@ def webhook():
     print("Incoming Signal:")
     print(data)
 
- alert = str(data.get("alert", "")).lower()
+    alert = str(data.get("alert", "")).lower()
 
-if alert == "buy_now":
-    action = "BUY"
-elif alert == "sell_now":
-    action = "SELL"
-else:
-    return jsonify({
-        "status": "error",
-        "message": "Invalid Alert"
-    }), 400
+    if alert == "buy_now":
+        action = "BUY"
+    elif alert == "sell_now":
+        action = "SELL"
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid Alert"
+        }), 400
+
     signal_id = data.get("id")
 
     if signal_id is None or signal_id == "":
         last_signal["id"] += 1
     else:
-        last_signal["id"] = signal_id
+        last_signal["id"] = int(signal_id)
 
-    last_signal["symbol"] = data.get("symbol", "")
+    last_signal["symbol"] = data.get("symbol", "XAUUSD")
     last_signal["action"] = action
     last_signal["price"] = data.get("price", "")
     last_signal["time"] = data.get("time", "")
